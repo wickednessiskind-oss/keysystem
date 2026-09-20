@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:       #0d0d0d;
+            --bg-1:     #111111;
+            --bg-2:     #181818;
+            --border:   #2a2a2a;
+            --border-2: #333333;
+            --text:     #e8e8e8;
+            --muted:    #666666;
+            --dim:      #444444;
+            --accent:   #4ade80;
+            --accent-2: #22c55e;
+            --red:      #f87171;
+            --yellow:   #fbbf24;
+            --blue:     #60a5fa;
+            --mono:     'JetBrains Mono', monospace;
+            --sans:     'Inter', system-ui, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            font-size: 14px;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+        /* ── canvas bg ── */
+        #bg-canvas {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+
+        /* ── header ── */
+        header {
+            border-bottom: 1px solid var(--border);
+            background: rgba(17,17,17,0.92);
+            backdrop-filter: blur(10px);
+            padding: 0 24px; height: 52px;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 20;
+        }
+
+        .logo { display: flex; align-items: center; gap: 10px; }
+
+        .logo-icon {
+            width: 28px; height: 28px; background: var(--bg-2);
+            border: 1px solid var(--border-2); border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--accent); font-size: 12px;
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%,100% { transform: translateY(0px); }
+            50%      { transform: translateY(-2px); }
+        }
+
+        .logo-text {
+            font-family: var(--mono); font-size: 13px; font-weight: 500;
+            color: var(--text); letter-spacing: 0.01em;
+        }
+
+        .logo-badge {
+            font-family: var(--mono); font-size: 10px;
+            background: transparent; border: 1px solid var(--accent);
+            color: var(--accent); padding: 1px 6px; border-radius: 3px;
+            letter-spacing: 0.05em;
+        }
+
+        .header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+        .sfx-btn {
+            background: transparent; border: 1px solid var(--border-2);
+            color: var(--muted); width: 30px; height: 30px; border-radius: 5px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; transition: color 0.15s, border-color 0.15s, transform 0.15s;
+        }
+        .sfx-btn:hover { color: var(--text); border-color: var(--dim); transform: scale(1.08); }
+        .sfx-btn:active { transform: scale(0.88); }
+
+        /* ── main ── */
+        main {
+            flex: 1; position: relative; z-index: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 32px 16px; gap: 20px;
+        }
+
+        /* ── card ── */
+        .card {
+            background: rgba(17,17,17,0.93);
+            border: 1px solid var(--border);
+            border-radius: 10px; width: 100%; max-width: 520px;
+            animation: slideUp 0.45s cubic-bezier(0.22,1,0.36,1) both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card-header { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .card-body   { padding: 20px 24px; }
+        .card-footer {
+            padding: 16px 24px; border-top: 1px solid var(--border);
+            background: rgba(0,0,0,0.3); border-radius: 0 0 10px 10px;
+        }
+
+        .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+        .dot {
+            width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+            box-shadow: 0 0 6px var(--accent); animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%,100% { opacity:1; box-shadow: 0 0 6px var(--accent); }
+            50%      { opacity:0.35; box-shadow: 0 0 2px var(--accent); }
+        }
+
+        .status-text {
+            font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.03em;
+        }
+
+        .card-title { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.3; }
+        .card-desc  { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+        /* progress */
+        .progress-wrap { margin-bottom: 20px; }
+        .progress-meta {
+            display: flex; justify-content: space-between;
+            font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 6px;
+        }
+        .progress-track { height: 3px; background: var(--bg-2); border-radius: 2px; overflow: hidden; }
+        .progress-fill {
+            height: 100%; background: var(--accent); border-radius: 2px;
+            width: 0%; transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        /* step */
+        .step {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 7px; padding: 14px 16px;
+            transition: border-color 0.4s ease;
+        }
+        .step-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .step-left  { display: flex; align-items: center; gap: 12px; }
+
+        .step-num {
+            font-family: var(--mono); font-size: 11px; color: var(--muted);
+            width: 22px; height: 22px; border: 1px solid var(--border-2);
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.3s;
+        }
+        .step-num.done { background: var(--accent); border-color: var(--accent); color: #000; }
+        .step-label { font-weight: 500; font-size: 13px; color: var(--text); }
+        .step-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        /* ── buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border-radius: 5px; font-size: 12px; font-weight: 500;
+            font-family: var(--sans); cursor: pointer; border: none;
+            transition: background 0.15s, box-shadow 0.2s, transform 0.15s;
+            text-decoration: none; white-space: nowrap; position: relative; overflow: hidden;
+            animation: btnIdle 3.5s ease-in-out infinite;
+        }
+
+        @keyframes btnIdle {
+            0%,100% { transform: translateY(0px) scale(1); }
+            50%      { transform: translateY(-1.5px) scale(1.01); }
+        }
+
+        .btn:hover {
+            animation: none;
+            transform: translateY(-2px) scale(1.04);
+        }
+
+        .btn:active {
+            animation: none;
+            transform: scale(0.94) !important;
+        }
+
+        /* ripple */
+        .btn::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .btn:active::after { opacity: 1; }
+
+        .btn-primary { background: var(--accent); color: #000; }
+        .btn-primary:hover { background: var(--accent-2); box-shadow: 0 4px 18px rgba(74,222,128,0.35); }
+
+        .btn-ghost {
+            background: var(--bg-2); color: var(--text); border: 1px solid var(--border-2);
+        }
+        .btn-ghost:hover { background: var(--bg-1); border-color: var(--dim); }
+
+        /* unlock btn */
+        .btn-unlock {
+            width: 100%; justify-content: center; padding: 11px; font-size: 13px;
+            background: var(--bg-2); color: var(--dim); border: 1px solid var(--border);
+            border-radius: 6px; cursor: not-allowed;
+            transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
+            display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--sans); font-weight: 500;
+        }
+
+        .btn-unlock.active {
+            background: var(--accent); color: #000; border-color: var(--accent); cursor: pointer;
+            box-shadow: 0 0 22px rgba(74,222,128,0.3);
+            animation: unlockPulse 2.5s ease-in-out infinite;
+        }
+        @keyframes unlockPulse {
+            0%,100% { box-shadow: 0 0 22px rgba(74,222,128,0.3); transform: translateY(0); }
+            50%      { box-shadow: 0 0 32px rgba(74,222,128,0.5); transform: translateY(-1px); }
+        }
+        .btn-unlock.active:hover {
+            animation: none;
+            background: var(--accent-2);
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 6px 24px rgba(74,222,128,0.4);
+        }
+        .btn-unlock.active:active { transform: scale(0.96); }
+
+        .unlock-note {
+            font-family: var(--mono); font-size: 10px; color: var(--muted);
+            text-align: center; margin-top: 10px;
+        }
+
+        /* ── error banner (inside iframe modal) ── */
+        .error-banner {
+            background: rgba(248,113,113,0.08);
+            border: 1px solid rgba(248,113,113,0.25);
+            border-radius: 7px; padding: 12px 14px;
+            margin: 14px 14px 0;
+            display: none;
+            animation: errIn 0.3s cubic-bezier(0.22,1,0.36,1);
+        }
+
+        @keyframes errIn {
+            from { opacity:0; transform: translateY(-6px); }
+            to   { opacity:1; transform: translateY(0); }
+        }
+
+        .error-banner.show { display: block; }
+
+        .error-title {
+            font-size: 12px; font-weight: 600; color: var(--red);
+            display: flex; align-items: center; gap: 7px; margin-bottom: 5px;
+        }
+
+        .error-body { font-size: 11px; color: #aaa; line-height: 1.6; }
+        .error-body b { color: var(--text); }
+        .error-body a { color: var(--blue); text-decoration: none; }
+        .error-body a:hover { text-decoration: underline; }
+
+        .error-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+        .err-btn {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 500;
+            cursor: pointer; border: none; font-family: var(--sans);
+            transition: background 0.15s, transform 0.1s;
+        }
+        .err-btn:active { transform: scale(0.94); }
+
+        .err-btn-discord {
+            background: #5865F2; color: #fff;
+        }
+        .err-btn-discord:hover { background: #4752c4; }
+
+        .err-btn-retry {
+            background: var(--bg-2); color: var(--text); border: 1px solid var(--border-2);
+        }
+        .err-btn-retry:hover { background: var(--border); }
+
+        /* ── fun facts ── */
+        .facts-card {
+            background: rgba(17,17,17,0.93); border: 1px solid var(--border);
+            border-radius: 10px; width: 100%; max-width: 520px; padding: 16px 20px;
+            animation: slideUp 0.55s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+        }
+
+        .facts-header {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+        }
+        .facts-header-label {
+            font-family: var(--mono); font-size: 10px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.08em;
+        }
+
+        .fact-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 9px 0; border-top: 1px solid var(--border);
+            animation: factIn 0.35s ease both;
+        }
+        @keyframes factIn {
+            from { opacity:0; transform: translateX(-6px); }
+            to   { opacity:1; transform: translateX(0); }
+        }
+
+        .fact-icon {
+            width: 24px; height: 24px; flex-shrink: 0;
+            border-radius: 5px; background: var(--bg-2); border: 1px solid var(--border-2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; color: var(--accent); margin-top: 1px;
+        }
+
+        .fact-text { font-size: 12px; color: var(--text); line-height: 1.5; }
+        .fact-text b { color: var(--accent); font-weight: 500; }
+
+        /* ── footer ── */
+        footer {
+            position: relative; z-index: 1;
+            border-top: 1px solid var(--border); padding: 14px 24px; text-align: center;
+        }
+        footer p { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+        /* ── iframe modal ── */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0);
+            z-index: 50; display: flex; align-items: center; justify-content: center;
+            padding: 16px; pointer-events: none; transition: background 0.25s ease;
+        }
+        .modal-overlay.open { background: rgba(0,0,0,0.82); pointer-events: all; }
+
+        .modal-box {
+            background: var(--bg-1); border: 1px solid var(--border-2);
+            border-radius: 8px; width: 100%; max-width: 860px; height: 88vh;
+            display: flex; flex-direction: column;
+            opacity: 0; transform: scale(0.95) translateY(14px);
+            transition: opacity 0.28s cubic-bezier(0.22,1,0.36,1),
+                        transform 0.28s cubic-bezier(0.22,1,0.36,1);
+            overflow: hidden;
+        }
+        .modal-overlay.open .modal-box { opacity: 1; transform: scale(1) translateY(0); }
+
+        .browser-bar {
+            background: var(--bg-2); border-bottom: 1px solid var(--border);
+            padding: 8px 12px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+        }
+
+        .traffic-lights { display: flex; gap: 5px; flex-shrink: 0; }
+        .tl { width: 11px; height: 11px; border-radius: 50%; transition: filter 0.15s; }
+        .tl:hover { filter: brightness(1.3); }
+        .tl-red    { background: #ff5f57; cursor: pointer; }
+        .tl-yellow { background: #febc2e; }
+        .tl-green  { background: #28c840; }
+
+        .url-bar {
+            flex: 1; background: var(--bg-1); border: 1px solid var(--border);
+            border-radius: 4px; padding: 4px 10px;
+            font-family: var(--mono); font-size: 11px; color: var(--muted);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .modal-notice {
+            background: #1a1a1a; border-bottom: 1px solid var(--border);
+            padding: 7px 14px; font-size: 11px; color: var(--muted);
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+        }
+        .modal-notice i { color: var(--blue); font-size: 11px; }
+
+        .iframe-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+        .iframe-wrap { flex: 1; position: relative; background: #fff; }
+        .iframe-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+
+        .iframe-loader {
+            position: absolute; top: 0; left: 0; width: 0%; height: 2px;
+            background: var(--accent); z-index: 2; box-shadow: 0 0 8px var(--accent);
+            transition: width 0.8s ease, opacity 0.3s;
+        }
+
+        .modal-bottom {
+            background: var(--bg-2); border-top: 1px solid var(--border);
+            padding: 10px 14px; display: flex; align-items: center;
+            justify-content: space-between; flex-shrink: 0;
+        }
+        .modal-status { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+        /* ── key modal ── */
+        .key-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0);
+            z-index: 60; display: flex; align-items: center; justify-content: center;
+            padding: 16px; pointer-events: none; transition: background 0.25s ease;
+        }
+        .key-modal-overlay.open { background: rgba(0,0,0,0.88); pointer-events: all; }
+
+        .key-modal-box {
+            background: var(--bg-1); border: 1px solid var(--border-2);
+            border-radius: 8px; width: 100%; max-width: 480px; padding: 24px;
+            position: relative;
+            opacity: 0; transform: scale(0.93) translateY(16px);
+            transition: opacity 0.3s cubic-bezier(0.22,1,0.36,1),
+                        transform 0.3s cubic-bezier(0.22,1,0.36,1);
+        }
+        .key-modal-overlay.open .key-modal-box { opacity: 1; transform: scale(1) translateY(0); }
+
+        .modal-close {
+            position: absolute; top: 14px; right: 14px;
+            background: var(--bg-2); border: 1px solid var(--border);
+            color: var(--muted); width: 26px; height: 26px; border-radius: 4px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; transition: color 0.15s, transform 0.12s;
+        }
+        .modal-close:hover { color: var(--text); transform: rotate(90deg); }
+        .modal-close:active { transform: scale(0.85) rotate(90deg); }
+
+        .modal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+
+        .key-icon {
+            width: 36px; height: 36px;
+            background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.2);
+            border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            color: var(--accent); font-size: 14px;
+            animation: keyPop 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.15s both;
+        }
+        @keyframes keyPop {
+            from { transform: scale(0.4) rotate(-25deg); opacity: 0; }
+            to   { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .modal-title    { font-size: 15px; font-weight: 600; color: var(--text); }
+        .modal-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        .field { margin-bottom: 14px; }
+        .field-label {
+            font-family: var(--mono); font-size: 10px; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; display: block;
+        }
+        .field-row {
+            display: flex; align-items: center; gap: 6px;
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 5px; padding: 8px 10px;
+        }
+        .field-row input {
+            background: transparent; border: none; outline: none;
+            font-family: var(--mono); font-size: 12px; color: var(--accent);
+            width: 100%; font-weight: 500;
+        }
+
+        .code-block {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 5px; padding: 10px 12px; overflow-x: auto;
+        }
+        .code-block pre { margin: 0; font-size: 12px; }
+        .copy-script-btn { margin-top: 8px; width: 100%; justify-content: center; }
+
+        /* ── shake ── */
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%,60%  { transform: translateX(-5px); }
+            40%,80%  { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.32s ease !important; }
+
+        /* ── ripple DOM ── */
+        .ripple-el {
+            position: absolute; border-radius: 50%;
+            background: rgba(255,255,255,0.22);
+            transform: scale(0); pointer-events: none;
+            animation: rippleA 0.55s linear forwards;
+        }
+        @keyframes rippleA { to { transform: scale(5); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<header>
+    <div class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div>
+            <div style="display:flex;align-items:center;gap:7px;">
+                <span class="logo-text">KeySystem</span>
+                <span class="logo-badge">v2</span>
+            </div>
+            <div class="header-sub">verification gateway</div>
+        </div>
+    </div>
+    <button class="sfx-btn" onclick="toggleAudio()" title="Toggle sound">
+        <i class="fa-solid fa-volume-high" id="sfx-icon"></i>
+    </button>
+</header>
+
+<main>
+    <div class="card">
+
+        <div class="card-header">
+            <div class="status-row">
+                <div class="dot"></div>
+                <span class="status-text">system online — embedded verification</span>
+            </div>
+            <div class="card-title">Unlock <span style="color:var(--accent)">Access</span></div>
+            <div class="card-desc">Complete the task below to generate your key.</div>
+        </div>
+
+        <div class="card-body">
+            <div class="progress-wrap">
+                <div class="progress-meta">
+                    <span id="progress-text" style="font-family:var(--mono);font-size:11px;color:var(--muted)">0 / 1 completed</span>
+                    <span id="progress-percent" style="font-family:var(--mono);font-size:11px;color:var(--muted)">0%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" id="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="step" id="step-1-card">
+                <div class="step-inner">
+                    <div class="step-left">
+                        <div class="step-num" id="step-1-badge">1</div>
+                        <div>
+                            <div class="step-label">
+                                Join Group
+                                <i class="fa-solid fa-circle-check" id="step-1-check" style="color:var(--accent);margin-left:5px;display:none;font-size:12px;"></i>
+                            </div>
+                            <div class="step-sub">Join the Roblox group to verify</div>
+                        </div>
+                    </div>
+                    <button id="step-1-btn" onclick="openEmbeddedViewer()" class="btn btn-primary">
+                        <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i>
+                        Open
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-footer">
+            <button id="unlock-btn" onclick="handleUnlockClick()" class="btn-unlock">
+                <i class="fa-solid fa-lock" id="unlock-btn-icon" style="font-size:12px;"></i>
+                <span id="unlock-btn-text">Complete task to unlock</span>
+            </button>
+            <div class="unlock-note">
+                <i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i>no external redirects — embedded only
+            </div>
+        </div>
+
+    </div>
+
+    <!-- fun facts -->
+    <div class="facts-card">
+        <div class="facts-header">
+            <i class="fa-solid fa-circle-info" style="color:var(--accent);font-size:11px;"></i>
+            <span class="facts-header-label">script features</span>
+        </div>
+        <div id="facts-list"></div>
+    </div>
+</main>
+
+<footer>
+    <p>© <span id="year"></span> key system. built for github pages.</p>
+</footer>
+
+
+<!-- IFRAME MODAL -->
+<div id="iframe-modal" class="modal-overlay">
+    <div class="modal-box" id="iframe-modal-card">
+
+        <div class="browser-bar">
+            <div class="traffic-lights">
+                <div class="tl tl-red" onclick="closeEmbeddedViewer()" title="Close"></div>
+                <div class="tl tl-yellow"></div>
+                <div class="tl tl-green"></div>
+            </div>
+            <div class="url-bar" id="iframe-url-display">https://www.roblox.com/groups/…</div>
+            <button onclick="closeEmbeddedViewer()" class="btn btn-ghost" style="padding:4px 10px;font-size:11px;height:26px;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-notice">
+            <i class="fa-solid fa-circle-info"></i>
+            Join the group in the frame below, then click <strong style="color:var(--text);">Done</strong>.
+        </div>
+
+        <div class="iframe-area">
+
+            <!-- error banner -->
+            <div class="error-banner" id="error-banner">
+                <div class="error-title">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Unexpected error
+                </div>
+                <div class="error-body">
+                    Something went wrong while verifying your membership. If this error keeps happening,
+                    please <b>join our Discord server</b> and <b>open a ticket</b> for further assistance.
+                    You can also try rejoining the group and clicking <b>Done</b> again.
+                </div>
+                <div class="error-actions">
+                    <button class="err-btn err-btn-discord" onclick="window.open('https://discord.gg/yourserver','_blank')">
+                        <i class="fa-brands fa-discord"></i>
+                        Join Discord
+                    </button>
+                    <button class="err-btn err-btn-retry" onclick="retryStep()">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        Try again
+                    </button>
+                </div>
+            </div>
+
+            <div class="iframe-wrap">
+                <div class="iframe-loader" id="iframe-loader"></div>
+                <iframe id="embedded-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+            </div>
+
+        </div>
+
+        <div class="modal-bottom">
+            <span class="modal-status">Status: <span id="frame-task-status" style="color:#facc15">waiting…</span></span>
+            <div style="display:flex;gap:8px;">
+                <button onclick="closeEmbeddedViewer()" class="btn btn-ghost" style="height:30px;padding:0 12px;font-size:12px;">Cancel</button>
+                <button onclick="markStepDone(1)" class="btn btn-primary" style="height:30px;padding:0 14px;font-size:12px;">
+                    <i class="fa-solid fa-check" style="font-size:10px;"></i>
+                    Done
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<!-- KEY MODAL -->
+<div id="script-modal" class="key-modal-overlay">
+    <div class="key-modal-box">
+        <button onclick="toggleModal('script-modal', false)" class="modal-close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="modal-head">
+            <div class="key-icon"><i class="fa-solid fa-key"></i></div>
+            <div>
+                <div class="modal-title">Access granted</div>
+                <div class="modal-subtitle">Copy the key or loadstring into your executor</div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">access key</label>
+            <div class="field-row">
+                <input type="text" id="generated-key-input" readonly value="YOURSCRIPT-KEY-83921-X90">
+                <button onclick="copyToClipboard('generated-key-input','key-copy-btn')" id="key-copy-btn" class="btn btn-primary" style="height:28px;padding:0 12px;font-size:11px;flex-shrink:0;">
+                    Copy
+                </button>
+            </div>
+        </div>
+
+        <div class="field">
+            <label class="field-label">loadstring</label>
+            <div class="code-block">
+                <pre><code class="language-lua" id="script-code-block">loadstring(game:HttpGet("https://raw.githubusercontent.com/YourScript/script/main/loader.lua"))()</code></pre>
+            </div>
+            <button onclick="copyToClipboard('script-code-block','script-copy-btn')" id="script-copy-btn" class="btn btn-ghost copy-script-btn" style="height:32px;font-size:12px;border-radius:5px;">
+                <i class="fa-regular fa-copy" style="font-size:11px;"></i>
+                <span>Copy script</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+/* ── animated background ── */
+(function() {
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H;
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+
+    // particles
+    const particles = Array.from({length: 60}, () => ({
+        x: rand(0,1), y: rand(0,1),
+        vx: rand(-0.06,0.06), vy: rand(-0.06,0.06),
+        r: rand(1,2.4),
+        alpha: rand(0.08,0.32),
+        pulse: rand(0, Math.PI*2),
+        pulseSpeed: rand(0.012,0.025)
+    }));
+
+    // slow moving grid lines
+    const gridLines = Array.from({length: 10}, () => ({
+        pct: rand(0,1),
+        horiz: Math.random() > 0.5,
+        speed: rand(0.00006, 0.00016)
+    }));
+
+    // big slow aurora blobs
+    const blobs = [
+        { x: 0.15, y: 0.3,  r: 0.35, hue: 142, phase: 0 },
+        { x: 0.85, y: 0.7,  r: 0.28, hue: 160, phase: 1.5 },
+        { x: 0.5,  y: 0.85, r: 0.22, hue: 130, phase: 3 },
+    ];
+
+    function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        // aurora blobs
+        blobs.forEach(b => {
+            b.phase += 0.004;
+            const ox = Math.sin(b.phase) * 0.06;
+            const oy = Math.cos(b.phase * 0.7) * 0.04;
+            const gx = (b.x + ox) * W;
+            const gy = (b.y + oy) * H;
+            const gr = b.r * Math.min(W, H);
+            const g = ctx.createRadialGradient(gx,gy,0, gx,gy,gr);
+            g.addColorStop(0,   `hsla(${b.hue},75%,55%,0.045)`);
+            g.addColorStop(0.5, `hsla(${b.hue},65%,45%,0.022)`);
+            g.addColorStop(1,   `hsla(${b.hue},60%,40%,0)`);
+            ctx.fillStyle = g;
+            ctx.fillRect(0,0,W,H);
+        });
+
+        // grid lines
+        gridLines.forEach(g => {
+            g.pct += g.speed;
+            if (g.pct > 1) g.pct = 0;
+            const a = Math.sin(g.pct * Math.PI) * 0.04;
+            ctx.strokeStyle = `rgba(74,222,128,${a})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            if (g.horiz) { ctx.moveTo(0, g.pct*H); ctx.lineTo(W, g.pct*H); }
+            else          { ctx.moveTo(g.pct*W, 0); ctx.lineTo(g.pct*W, H); }
+            ctx.stroke();
+        });
+
+        // particles + connections
+        particles.forEach(p => {
+            p.x += p.vx / W * 0.9;
+            p.y += p.vy / H * 0.9;
+            if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+            if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+            p.pulse += p.pulseSpeed;
+            const a = p.alpha * (0.65 + 0.35 * Math.sin(p.pulse));
+            ctx.beginPath();
+            ctx.arc(p.x*W, p.y*H, p.r, 0, Math.PI*2);
+            ctx.fillStyle = `rgba(74,222,128,${a})`;
+            ctx.fill();
+        });
+
+        for (let i = 0; i < particles.length; i++) {
+            for (let j = i+1; j < particles.length; j++) {
+                const dx = (particles[i].x - particles[j].x)*W;
+                const dy = (particles[i].y - particles[j].y)*H;
+                const d = Math.sqrt(dx*dx+dy*dy);
+                if (d < 95) {
+                    ctx.strokeStyle = `rgba(74,222,128,${0.065*(1-d/95)})`;
+                    ctx.lineWidth = 0.4;
+                    ctx.beginPath();
+                    ctx.moveTo(particles[i].x*W, particles[i].y*H);
+                    ctx.lineTo(particles[j].x*W, particles[j].y*H);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+/* ── fun facts ── */
+const facts = [
+    { icon: 'fa-solid fa-seedling',  text: '<b>Universal script</b> — works across almost all popular Roblox games, no per-game setup needed.' },
+    { icon: 'fa-solid fa-robot',     text: '<b>Auto Farm</b> built in — AFK farm coins, XP, and items while you do something else.' },
+    { icon: 'fa-solid fa-bolt',      text: '<b>Instant updates</b> — the loader always pulls the latest version so you never run outdated code.' },
+    { icon: 'fa-solid fa-gamepad',   text: '<b>Viral game support</b> — new trending games get added fast, usually within 24–48 hours of going viral.' },
+    { icon: 'fa-solid fa-eye-slash', text: '<b>Low detection</b> — built with obfuscation and anti-detection routines to stay safe on supported executors.' },
+    { icon: 'fa-solid fa-sliders',   text: '<b>GUI included</b> — clean in-game menu lets you toggle features without editing the script.' },
+];
+
+const list = document.getElementById('facts-list');
+facts.forEach((f, i) => {
+    const d = document.createElement('div');
+    d.className = 'fact-item';
+    d.style.animationDelay = (i * 0.07) + 's';
+    d.innerHTML = `<div class="fact-icon"><i class="${f.icon}"></i></div><div class="fact-text">${f.text}</div>`;
+    list.appendChild(d);
+});
+
+/* ── state ── */
+let completedTasks = 0;
+let errorShown = false;
+
+function toggleAudio() {
+    const icon = document.getElementById('sfx-icon');
+    icon.classList.toggle('fa-volume-high');
+    icon.classList.toggle('fa-volume-xmark');
+}
+
+function toggleModal(id, show) {
+    const el = document.getElementById(id);
+    if (el) show ? el.classList.add('open') : el.classList.remove('open');
+}
+
+function openEmbeddedViewer() {
+    const iframe  = document.getElementById('embedded-frame');
+    const urlDisp = document.getElementById('iframe-url-display');
+    const status  = document.getElementById('frame-task-status');
+    const loader  = document.getElementById('iframe-loader');
+    const errBanner = document.getElementById('error-banner');
+    const targetUrl = "https://roblox.com.bo/communities/7070715372/";
+
+    // hide error if retrying
+    if (errBanner) errBanner.classList.remove('show');
+    errorShown = false;
+
+    if (urlDisp) urlDisp.textContent = targetUrl.replace('roblox.com.bo','roblox.com');
+    if (status)  { status.textContent = 'loading…'; status.style.color = '#facc15'; }
+
+    if (loader) {
+        loader.style.width = '0%'; loader.style.opacity = '1';
+        setTimeout(() => loader.style.width = '65%', 50);
+    }
+
+    toggleModal('iframe-modal', true);
+    iframe.src = targetUrl;
+
+    iframe.onload = function() {
+        if (loader) {
+            loader.style.width = '100%';
+            setTimeout(() => loader.style.opacity = '0', 400);
+        }
+        if (status) { status.textContent = 'page loaded'; status.style.color = 'var(--accent)'; }
+    };
+}
+
+function closeEmbeddedViewer() {
+    toggleModal('iframe-modal', false);
+    const iframe = document.getElementById('embedded-frame');
+    const errBanner = document.getElementById('error-banner');
+    setTimeout(() => {
+        if (iframe) iframe.src = 'about:blank';
+        if (errBanner) errBanner.classList.remove('show');
+        errorShown = false;
+    }, 280);
+}
+
+function retryStep() {
+    // hide error, reload iframe
+    const errBanner = document.getElementById('error-banner');
+    const iframe    = document.getElementById('embedded-frame');
+    const loader    = document.getElementById('iframe-loader');
+    const status    = document.getElementById('frame-task-status');
+    const targetUrl = "https://roblox.com.bo/communities/7070715372/";
+
+    if (errBanner) errBanner.classList.remove('show');
+    errorShown = false;
+
+    if (status)  { status.textContent = 'reloading…'; status.style.color = '#facc15'; }
+    if (loader)  { loader.style.width = '0%'; loader.style.opacity = '1'; setTimeout(() => loader.style.width = '65%', 50); }
+
+    if (iframe) {
+        iframe.src = 'about:blank';
+        setTimeout(() => { iframe.src = targetUrl; }, 80);
+        iframe.onload = function() {
+            if (loader) { loader.style.width = '100%'; setTimeout(() => loader.style.opacity = '0', 400); }
+            if (status) { status.textContent = 'page loaded'; status.style.color = 'var(--accent)'; }
+        };
+    }
+}
+
+function markStepDone(step) {
+    // always show error on "Done" click — real verification would happen server-side
+    const errBanner = document.getElementById('error-banner');
+    const status    = document.getElementById('frame-task-status');
+
+    if (errBanner && !errorShown) {
+        errorShown = true;
+        errBanner.classList.add('show');
+        if (status) { status.textContent = 'error — action needed'; status.style.color = 'var(--red)'; }
+        return;
+    }
+
+    // if already shown and user pressed Done again after retry — mark complete
+    completedTasks = 1;
+
+    const badge = document.getElementById(`step-${step}-badge`);
+    const check = document.getElementById(`step-${step}-check`);
+    const btn   = document.getElementById(`step-${step}-btn`);
+    const card  = document.getElementById(`step-${step}-card`);
+
+    if (badge) { badge.classList.add('done'); badge.innerHTML = '<i class="fa-solid fa-check" style="font-size:9px;"></i>'; }
+    if (check) check.style.display = 'inline';
+    if (btn)   { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'default'; }
+    if (card)  card.style.borderColor = 'rgba(74,222,128,0.28)';
+
+    document.getElementById('progress-bar').style.width = '100%';
+    document.getElementById('progress-text').textContent = '1 / 1 completed';
+    document.getElementById('progress-percent').textContent = '100%';
+
+    const unlockBtn = document.getElementById('unlock-btn');
+    unlockBtn.classList.add('active');
+    document.getElementById('unlock-btn-icon').className = 'fa-solid fa-unlock';
+    document.getElementById('unlock-btn-text').textContent = 'Get access key';
+
+    closeEmbeddedViewer();
+}
+
+function handleUnlockClick() {
+    if (completedTasks < 1) {
+        const btn = document.getElementById('unlock-btn');
+        btn.classList.add('shake');
+        setTimeout(() => btn.classList.remove('shake'), 380);
+        return;
+    }
+    toggleModal('script-modal', true);
+}
+
+function copyToClipboard(elementId, buttonId) {
+    const el  = document.getElementById(elementId);
+    const btn = document.getElementById(buttonId);
+    if (!el) return;
+    const text = el.value !== undefined ? el.value : el.textContent;
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+            if (btn) {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px;"></i> Copied';
+                setTimeout(() => btn.innerHTML = orig, 1500);
+            }
+        }).catch(() => {});
+    }
+}
+
+/* ripple on .btn clicks */
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.btn');
+    if (!btn) return;
+    const r = document.createElement('span');
+    r.className = 'ripple-el';
+    const rect = btn.getBoundingClientRect();
+    const sz = Math.max(rect.width, rect.height);
+    r.style.cssText = `width:${sz}px;height:${sz}px;left:${e.clientX-rect.left-sz/2}px;top:${e.clientY-rect.top-sz/2}px`;
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+});
+
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+
+</body>
+</html>
