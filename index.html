@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Key System</title>
+    <link rel="preconnect" href="https://www.roblox.com" crossorigin>
+    <link rel="dns-prefetch" href="//www.roblox.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -406,6 +408,22 @@
         }
         .modal-status { font-family: var(--mono); font-size: 11px; color: var(--muted); }
 
+        .modal-notice a { color: var(--accent); text-decoration: none; }
+        .modal-notice a:hover { text-decoration: underline; }
+        button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+        .err-btn, .sfx-btn, .modal-close { transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease; }
+        .err-btn:hover { transform: translateY(-2px); }
+        .btn i, .err-btn i { transition: transform .2s ease; }
+        .btn:hover i, .err-btn:hover i { transform: translateX(2px); }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+        }
+        @media (max-width: 480px) {
+            .modal-bottom { align-items: flex-start; flex-direction: column; gap: 10px; }
+            .modal-bottom > div { width: 100%; justify-content: flex-end; }
+            .modal-notice { flex-wrap: wrap; line-height: 1.5; }
+        }
+
         /* ── key modal ── */
         .key-modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0);
@@ -547,7 +565,7 @@
                             <div class="step-sub">Join the Roblox group to verify</div>
                         </div>
                     </div>
-                    <button id="step-1-btn" onclick="openEmbeddedViewer()" class="btn btn-primary">
+                    <button id="step-1-btn" onclick="openEmbeddedViewer()" onmouseenter="prepareFrame()" onfocus="prepareFrame()" class="btn btn-primary">
                         <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px;"></i>
                         Open
                     </button>
@@ -561,7 +579,7 @@
                 <span id="unlock-btn-text">Complete task to unlock</span>
             </button>
             <div class="unlock-note">
-                <i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i>no external redirects — embedded only
+                <i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i>Roblox may open in a new tab if embedding is unavailable
             </div>
         </div>
 
@@ -593,44 +611,31 @@
                 <div class="tl tl-green"></div>
             </div>
             <div class="url-bar" id="iframe-url-display">https://www.roblox.com/groups/…</div>
-            <button onclick="closeEmbeddedViewer()" class="btn btn-ghost" style="padding:4px 10px;font-size:11px;height:26px;">
+            <button onclick="closeEmbeddedViewer()" aria-label="Close viewer" class="btn btn-ghost" style="padding:4px 10px;font-size:11px;height:26px;">
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
 
         <div class="modal-notice">
             <i class="fa-solid fa-circle-info"></i>
-            Join the group in the frame below, then click <strong style="color:var(--text);">Done</strong>.
+            Join the group below. If the page doesn’t appear, <a href="https://www.roblox.com/communities/7070715372/" target="_blank" rel="noopener noreferrer">open it on Roblox <i class="fa-solid fa-arrow-up-right-from-square"></i></a>.
         </div>
 
         <div class="iframe-area">
 
-            <!-- error banner -->
-            <div class="error-banner" id="error-banner">
-                <div class="error-title">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    Unexpected error
-                </div>
-                <div class="error-body">
-                    Something went wrong while verifying your membership. If this error keeps happening,
-                    please <b>join our Discord server</b> and <b>open a ticket</b> for further assistance.
-                    You can also try rejoining the group and clicking <b>Done</b> again.
-                </div>
+            <div class="error-banner" id="error-banner" role="alert" aria-live="assertive">
+                <div class="error-title"><i class="fa-solid fa-triangle-exclamation"></i> Error — please complete the task</div>
+                <div class="error-body">We couldn’t verify your membership. Please complete the task on Roblox and try again.</div>
                 <div class="error-actions">
-                    <button class="err-btn err-btn-discord" onclick="window.open('https://discord.gg/yourserver','_blank')">
-                        <i class="fa-brands fa-discord"></i>
-                        Join Discord
-                    </button>
                     <button class="err-btn err-btn-retry" onclick="retryStep()">
-                        <i class="fa-solid fa-rotate-right"></i>
-                        Try again
+                        <i class="fa-solid fa-rotate-right"></i> Try again
                     </button>
                 </div>
             </div>
 
             <div class="iframe-wrap">
                 <div class="iframe-loader" id="iframe-loader"></div>
-                <iframe id="embedded-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+                <iframe id="embedded-frame" title="Roblox group page" src="about:blank" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
             </div>
 
         </div>
@@ -641,7 +646,7 @@
                 <button onclick="closeEmbeddedViewer()" class="btn btn-ghost" style="height:30px;padding:0 12px;font-size:12px;">Cancel</button>
                 <button onclick="markStepDone(1)" class="btn btn-primary" style="height:30px;padding:0 14px;font-size:12px;">
                     <i class="fa-solid fa-check" style="font-size:10px;"></i>
-                    Done
+                    I joined, mark it done
                 </button>
             </div>
         </div>
@@ -653,7 +658,7 @@
 <!-- KEY MODAL -->
 <div id="script-modal" class="key-modal-overlay">
     <div class="key-modal-box">
-        <button onclick="toggleModal('script-modal', false)" class="modal-close">
+        <button onclick="toggleModal('script-modal', false)" class="modal-close" aria-label="Close key dialog">
             <i class="fa-solid fa-xmark"></i>
         </button>
 
@@ -817,7 +822,7 @@ facts.forEach((f, i) => {
 
 /* ── state ── */
 let completedTasks = 0;
-let errorShown = false;
+let frameStarted = false;
 
 function toggleAudio() {
     const icon = document.getElementById('sfx-icon');
@@ -830,108 +835,60 @@ function toggleModal(id, show) {
     if (el) show ? el.classList.add('open') : el.classList.remove('open');
 }
 
-function openEmbeddedViewer() {
-    const iframe  = document.getElementById('embedded-frame');
-    const urlDisp = document.getElementById('iframe-url-display');
-    const status  = document.getElementById('frame-task-status');
-    const loader  = document.getElementById('iframe-loader');
-    const errBanner = document.getElementById('error-banner');
-    const targetUrl = "https://roblox.com.bo/communities/7070715372/";
+const targetUrl = 'https://www.roblox.com/communities/7070715372/';
 
-    // hide error if retrying
-    if (errBanner) errBanner.classList.remove('show');
-    errorShown = false;
-
-    if (urlDisp) urlDisp.textContent = targetUrl.replace('roblox.com.bo','roblox.com');
-    if (status)  { status.textContent = 'loading…'; status.style.color = '#facc15'; }
-
-    if (loader) {
-        loader.style.width = '0%'; loader.style.opacity = '1';
-        setTimeout(() => loader.style.width = '65%', 50);
-    }
-
-    toggleModal('iframe-modal', true);
-    iframe.src = targetUrl;
-
-    iframe.onload = function() {
-        if (loader) {
-            loader.style.width = '100%';
-            setTimeout(() => loader.style.opacity = '0', 400);
+function prepareFrame(force = false) {
+    if (frameStarted && !force) return;
+    frameStarted = true;
+    const iframe = document.getElementById('embedded-frame');
+    const loader = document.getElementById('iframe-loader');
+    const status = document.getElementById('frame-task-status');
+    status.textContent = 'loading…';
+    status.style.color = 'var(--yellow)';
+    loader.style.opacity = '1';
+    loader.style.width = '65%';
+    iframe.onload = () => {
+        loader.style.width = '100%';
+        setTimeout(() => { loader.style.opacity = '0'; }, 400);
+        // A load event cannot tell us whether a third-party page blocked embedding.
+        if (!document.getElementById('error-banner').classList.contains('show')) {
+            status.textContent = 'waiting for task';
+            status.style.color = 'var(--yellow)';
         }
-        if (status) { status.textContent = 'page loaded'; status.style.color = 'var(--accent)'; }
     };
+    iframe.src = targetUrl;
+}
+
+function openEmbeddedViewer() {
+    document.getElementById('error-banner').classList.remove('show');
+    document.getElementById('iframe-url-display').textContent = targetUrl;
+    if (frameStarted) {
+        const status = document.getElementById('frame-task-status');
+        status.textContent = 'waiting for task';
+        status.style.color = 'var(--yellow)';
+    }
+    toggleModal('iframe-modal', true);
+    prepareFrame();
 }
 
 function closeEmbeddedViewer() {
     toggleModal('iframe-modal', false);
-    const iframe = document.getElementById('embedded-frame');
-    const errBanner = document.getElementById('error-banner');
-    setTimeout(() => {
-        if (iframe) iframe.src = 'about:blank';
-        if (errBanner) errBanner.classList.remove('show');
-        errorShown = false;
-    }, 280);
 }
 
 function retryStep() {
-    // hide error, reload iframe
-    const errBanner = document.getElementById('error-banner');
-    const iframe    = document.getElementById('embedded-frame');
-    const loader    = document.getElementById('iframe-loader');
-    const status    = document.getElementById('frame-task-status');
-    const targetUrl = "https://roblox.com.bo/communities/7070715372/";
-
-    if (errBanner) errBanner.classList.remove('show');
-    errorShown = false;
-
-    if (status)  { status.textContent = 'reloading…'; status.style.color = '#facc15'; }
-    if (loader)  { loader.style.width = '0%'; loader.style.opacity = '1'; setTimeout(() => loader.style.width = '65%', 50); }
-
-    if (iframe) {
-        iframe.src = 'about:blank';
-        setTimeout(() => { iframe.src = targetUrl; }, 80);
-        iframe.onload = function() {
-            if (loader) { loader.style.width = '100%'; setTimeout(() => loader.style.opacity = '0', 400); }
-            if (status) { status.textContent = 'page loaded'; status.style.color = 'var(--accent)'; }
-        };
-    }
+    document.getElementById('error-banner').classList.remove('show');
+    prepareFrame(true);
 }
 
-function markStepDone(step) {
-    // always show error on "Done" click — real verification would happen server-side
-    const errBanner = document.getElementById('error-banner');
-    const status    = document.getElementById('frame-task-status');
-
-    if (errBanner && !errorShown) {
-        errorShown = true;
-        errBanner.classList.add('show');
-        if (status) { status.textContent = 'error — action needed'; status.style.color = 'var(--red)'; }
-        return;
-    }
-
-    // if already shown and user pressed Done again after retry — mark complete
-    completedTasks = 1;
-
-    const badge = document.getElementById(`step-${step}-badge`);
-    const check = document.getElementById(`step-${step}-check`);
-    const btn   = document.getElementById(`step-${step}-btn`);
-    const card  = document.getElementById(`step-${step}-card`);
-
-    if (badge) { badge.classList.add('done'); badge.innerHTML = '<i class="fa-solid fa-check" style="font-size:9px;"></i>'; }
-    if (check) check.style.display = 'inline';
-    if (btn)   { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'default'; }
-    if (card)  card.style.borderColor = 'rgba(74,222,128,0.28)';
-
-    document.getElementById('progress-bar').style.width = '100%';
-    document.getElementById('progress-text').textContent = '1 / 1 completed';
-    document.getElementById('progress-percent').textContent = '100%';
-
-    const unlockBtn = document.getElementById('unlock-btn');
-    unlockBtn.classList.add('active');
-    document.getElementById('unlock-btn-icon').className = 'fa-solid fa-unlock';
-    document.getElementById('unlock-btn-text').textContent = 'Get access key';
-
-    closeEmbeddedViewer();
+function markStepDone() {
+    const banner = document.getElementById('error-banner');
+    const status = document.getElementById('frame-task-status');
+    // Membership cannot be verified by this static page. Never unlock on a repeat click.
+    banner.classList.remove('show');
+    void banner.offsetWidth;
+    banner.classList.add('show');
+    status.textContent = 'error — please complete the task';
+    status.style.color = 'var(--red)';
 }
 
 function handleUnlockClick() {
