@@ -6,6 +6,10 @@
     <title>Key System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.roblox.com">
+    <link rel="preconnect" href="https://www.roblox.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.roblox.com">
+    <link rel="preconnect" href="https://www.roblox.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
@@ -21,8 +25,8 @@
             --bg-2:     #181818;
             --border:   #2a2a2a;
             --border-2: #333333;
-            --text:     #e8e8e8;
-            --muted:    #666666;
+            --text:     #b9bdc4;
+            --muted:    #7d828a;
             --dim:      #444444;
             --accent:   #4ade80;
             --accent-2: #22c55e;
@@ -157,16 +161,27 @@
         }
         .progress-track { height: 3px; background: var(--bg-2); border-radius: 2px; overflow: hidden; }
         .progress-fill {
-            height: 100%; background: var(--accent); border-radius: 2px;
+            height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            border-radius: 2px; position: relative; overflow: hidden;
             width: 0%; transition: width 0.6s cubic-bezier(0.22,1,0.36,1);
+        }
+        .progress-fill::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+            width: 40%; transform: translateX(-120%);
+            animation: progressShimmer 1.8s ease-in-out infinite;
+        }
+        @keyframes progressShimmer {
+            to { transform: translateX(280%); }
         }
 
         /* step */
         .step {
             background: var(--bg); border: 1px solid var(--border);
             border-radius: 7px; padding: 14px 16px;
-            transition: border-color 0.4s ease;
+            transition: border-color 0.4s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
+        .step:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
         .step-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
         .step-left  { display: flex; align-items: center; gap: 12px; }
 
@@ -205,6 +220,27 @@
             transform: scale(0.94) !important;
         }
 
+        .btn i { transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+        .btn:hover i { transform: translateX(1px) scale(1.12); }
+        .btn:active i { transform: scale(0.9); }
+
+        /* shimmer sweep */
+        .btn::before {
+            content: '';
+            position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+            background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+            transform: skewX(-20deg);
+            opacity: 0;
+        }
+        .btn:hover::before {
+            opacity: 1;
+            animation: shimmerSweep 0.9s ease;
+        }
+        @keyframes shimmerSweep {
+            0%   { left: -60%; }
+            100% { left: 130%; }
+        }
+
         /* ripple */
         .btn::after {
             content: '';
@@ -214,19 +250,29 @@
         }
         .btn:active::after { opacity: 1; }
 
-        .btn-primary { background: var(--accent); color: #000; }
-        .btn-primary:hover { background: var(--accent-2); box-shadow: 0 4px 18px rgba(74,222,128,0.35); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #000;
+            box-shadow: 0 2px 10px rgba(74,222,128,0.18);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent-2), var(--accent));
+            box-shadow: 0 6px 22px rgba(74,222,128,0.4);
+        }
 
         .btn-ghost {
             background: var(--bg-2); color: var(--text); border: 1px solid var(--border-2);
         }
-        .btn-ghost:hover { background: var(--bg-1); border-color: var(--dim); }
+        .btn-ghost:hover {
+            background: var(--bg-1); border-color: var(--accent);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        }
 
         /* unlock btn */
         .btn-unlock {
             width: 100%; justify-content: center; padding: 11px; font-size: 13px;
             background: var(--bg-2); color: var(--dim); border: 1px solid var(--border);
-            border-radius: 6px; cursor: not-allowed;
+            border-radius: 6px; cursor: not-allowed; position: relative; overflow: hidden;
             transition: all 0.35s cubic-bezier(0.22,1,0.36,1);
             display: inline-flex; align-items: center; gap: 6px;
             font-family: var(--sans); font-weight: 500;
@@ -391,7 +437,26 @@
         .iframe-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 
         .iframe-wrap { flex: 1; position: relative; background: #fff; }
-        .iframe-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+        .iframe-wrap iframe { width: 100%; height: 100%; border: none; display: block; position: relative; z-index: 1; }
+
+        .iframe-skeleton {
+            position: absolute; inset: 0; z-index: 2;
+            background: var(--bg-1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 10px; opacity: 1; transition: opacity 0.35s ease;
+        }
+        .iframe-skeleton.hidden { opacity: 0; pointer-events: none; }
+        .skel-spinner {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 2px solid var(--border-2); border-top-color: var(--accent);
+            animation: skelSpin 0.7s linear infinite;
+        }
+        @keyframes skelSpin { to { transform: rotate(360deg); } }
+        .skel-text {
+            font-family: var(--mono); font-size: 11px; color: var(--muted);
+            animation: skelPulse 1.4s ease-in-out infinite;
+        }
+        @keyframes skelPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
 
         .iframe-loader {
             position: absolute; top: 0; left: 0; width: 0%; height: 2px;
@@ -482,6 +547,27 @@
         }
         .shake { animation: shake 0.32s ease !important; }
 
+        /* ── confetti burst ── */
+        .confetti-piece {
+            position: fixed; top: 0; left: 0; width: 6px; height: 6px;
+            border-radius: 1px; pointer-events: none; z-index: 70;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            0%   { transform: translate(0,0) rotate(0deg); opacity: 1; }
+            100% { transform: var(--tf); opacity: 0; }
+        }
+
+        .unlock-flash {
+            position: absolute; inset: 0; border-radius: 6px;
+            background: var(--accent); opacity: 0; pointer-events: none;
+            animation: unlockFlash 0.6s ease-out;
+        }
+        @keyframes unlockFlash {
+            0%   { opacity: 0.55; transform: scale(0.9); }
+            100% { opacity: 0;    transform: scale(1.5); }
+        }
+
         /* ── ripple DOM ── */
         .ripple-el {
             position: absolute; border-radius: 50%;
@@ -490,11 +576,70 @@
             animation: rippleA 0.55s linear forwards;
         }
         @keyframes rippleA { to { transform: scale(5); opacity: 0; } }
+
+/* ── v3 additions ── */
+body { -webkit-font-smoothing: antialiased; }
+.card-title { color: #c9cdd3; font-weight: 600; }
+.step-label { color: #b9bdc4; }
+.card { animation-fill-mode: backwards; transform-style: preserve-3d; will-change: transform; transition: transform 0.15s ease-out; }
+.card-title span {
+    background: linear-gradient(90deg, #3fbf6e, #7be3a4, #3fbf6e); background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: gradShift 4s linear infinite;
+}
+@keyframes gradShift { to { background-position: 200% 0; } }
+.btn-primary { background: linear-gradient(135deg, #43c474, #2fa35c); }
+.btn-primary:hover { background: linear-gradient(135deg, #2fa35c, #43c474); }
+.btn-unlock.active { background: #43c474; border-color: #43c474; }
+.step-num.done { background: #43c474; border-color: #43c474; }
+
+#cursor-glow {
+    position: fixed; width: 380px; height: 380px; left: 0; top: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(circle, rgba(74,222,128,0.07), transparent 65%);
+    transform: translate(-50%,-50%); transition: opacity 0.3s; opacity: 0;
+}
+@media (pointer: coarse) { #cursor-glow { display: none; } }
+
+#toast-wrap { position: fixed; bottom: 18px; right: 18px; z-index: 90; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast {
+    background: rgba(24,24,24,0.96); border: 1px solid var(--border-2); border-left: 3px solid var(--accent);
+    color: var(--text); font-size: 12px; padding: 9px 13px; border-radius: 6px;
+    display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    animation: toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+.toast.out { animation: toastOut 0.3s ease forwards; }
+.toast i { color: var(--accent); }
+@keyframes toastIn  { from { opacity: 0; transform: translateX(30px) scale(0.9); } to { opacity: 1; transform: none; } }
+@keyframes toastOut { to { opacity: 0; transform: translateX(30px); } }
+
+.verify-meter { height: 3px; background: var(--bg-2); flex-shrink: 0; }
+#verify-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #43c474, #7be3a4); transition: width 0.25s cubic-bezier(0.22,1,0.36,1); box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+
+.error-banner { background: rgba(96,165,250,0.07); border-color: rgba(96,165,250,0.25); }
+.error-title { color: var(--blue); }
+.error-title i { animation: hgTurn 2s ease-in-out infinite; }
+@keyframes hgTurn { 0%,40% { transform: rotate(0); } 60%,100% { transform: rotate(180deg); } }
+.error-banner.pulse { animation: bannerPulse 0.35s ease; }
+@keyframes bannerPulse { 0% { transform: scale(1); } 40% { transform: scale(1.02); border-color: var(--blue); } 100% { transform: scale(1); } }
+
+#done-label { font-variant-numeric: tabular-nums; }
+.card-title, .modal-title { letter-spacing: -0.01em; }
+.fact-item { transition: transform 0.2s ease, background 0.2s ease; }
+.fact-item:hover { transform: translateX(4px); }
+.fact-item:hover .fact-icon { border-color: var(--accent); box-shadow: 0 0 10px rgba(74,222,128,0.25); }
+.fact-icon { transition: all 0.25s ease; }
+.logo-icon::after { content:''; position:absolute; inset:-4px; border-radius:9px; border:1px solid var(--accent); opacity:0; animation: ringPing 3s ease-out infinite; }
+.logo-icon { position: relative; }
+@keyframes ringPing { 0% { opacity: 0.5; transform: scale(0.85); } 100% { opacity: 0; transform: scale(1.4); } }
+.key-reveal { animation: keyGlow 1.2s ease; }
+@keyframes keyGlow { 0% { box-shadow: 0 0 0 rgba(74,222,128,0); } 40% { box-shadow: 0 0 18px rgba(74,222,128,0.35); } 100% { box-shadow: 0 0 0 rgba(74,222,128,0); } }
     </style>
 </head>
 <body>
 
 <canvas id="bg-canvas"></canvas>
+<div id="cursor-glow"></div>
+<div id="toast-wrap"></div>
 
 <header>
     <div class="logo">
@@ -561,7 +706,7 @@
                 <span id="unlock-btn-text">Complete task to unlock</span>
             </button>
             <div class="unlock-note">
-                <i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i>no external redirects — embedded only
+                <i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i>Roblox may open in a new tab if embedding is unavailable
             </div>
         </div>
 
@@ -600,21 +745,20 @@
 
         <div class="modal-notice">
             <i class="fa-solid fa-circle-info"></i>
-            Join the group in the frame below, then click <strong style="color:var(--text);">Done</strong>.
+            Join the group below, then click Done. If the page doesn’t appear, <a href="https://www.roblox.com/communities/7070715372/" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">open it on Roblox</a>.
         </div>
 
         <div class="iframe-area">
 
+
             <!-- error banner -->
-            <div class="error-banner" id="error-banner">
+            <div class="error-banner" id="error-banner" role="alert" aria-live="assertive">
                 <div class="error-title">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    Unexpected error
+                    <span id="banner-title">Error — please complete the task</span>
                 </div>
-                <div class="error-body">
-                    Something went wrong while verifying your membership. If this error keeps happening,
-                    please <b>join our Discord server</b> and <b>open a ticket</b> for further assistance.
-                    You can also try rejoining the group and clicking <b>Done</b> again.
+                <div class="error-body" id="banner-body">
+                    We couldn’t verify your membership. Please complete the task and try again.
                 </div>
                 <div class="error-actions">
                     <button class="err-btn err-btn-discord" onclick="window.open('https://discord.gg/yourserver','_blank')">
@@ -630,7 +774,11 @@
 
             <div class="iframe-wrap">
                 <div class="iframe-loader" id="iframe-loader"></div>
-                <iframe id="embedded-frame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+                <iframe id="embedded-frame" src="about:blank" loading="eager" fetchpriority="high" referrerpolicy="no-referrer-when-downgrade" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+                <div class="iframe-skeleton" id="iframe-skeleton">
+                    <div class="skel-spinner"></div>
+                    <div class="skel-text">connecting…</div>
+                </div>
             </div>
 
         </div>
@@ -641,7 +789,7 @@
                 <button onclick="closeEmbeddedViewer()" class="btn btn-ghost" style="height:30px;padding:0 12px;font-size:12px;">Cancel</button>
                 <button onclick="markStepDone(1)" class="btn btn-primary" style="height:30px;padding:0 14px;font-size:12px;">
                     <i class="fa-solid fa-check" style="font-size:10px;"></i>
-                    Done
+                    <span id="done-label">I joined, mark it done</span>
                 </button>
             </div>
         </div>
@@ -818,11 +966,41 @@ facts.forEach((f, i) => {
 /* ── state ── */
 let completedTasks = 0;
 let errorShown = false;
+let doneClicks = 0;
+const REQUIRED_CLICKS = 25;
+let audioOn = true;
+let actx = null;
+
+function beep(freq, dur, type, vol) {
+    if (!audioOn) return;
+    try {
+        actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+        const o = actx.createOscillator(), g = actx.createGain();
+        o.type = type || 'sine'; o.frequency.value = freq;
+        g.gain.setValueAtTime(vol || 0.04, actx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+        o.connect(g); g.connect(actx.destination);
+        o.start(); o.stop(actx.currentTime + dur);
+    } catch (e) {}
+}
+function chord() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, 0.35, 'triangle', 0.05), i * 90)); }
 
 function toggleAudio() {
+    audioOn = !audioOn;
     const icon = document.getElementById('sfx-icon');
-    icon.classList.toggle('fa-volume-high');
-    icon.classList.toggle('fa-volume-xmark');
+    icon.classList.toggle('fa-volume-high', audioOn);
+    icon.classList.toggle('fa-volume-xmark', !audioOn);
+    showToast(audioOn ? 'Sound on' : 'Sound off', audioOn ? 'fa-volume-high' : 'fa-volume-xmark');
+    beep(660, 0.1);
+}
+
+function showToast(msg, icon) {
+    const wrap = document.getElementById('toast-wrap');
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.innerHTML = `<i class="fa-solid ${icon || 'fa-circle-info'}"></i><span>${msg}</span>`;
+    wrap.appendChild(t);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 2200);
 }
 
 function toggleModal(id, show) {
@@ -835,31 +1013,34 @@ function openEmbeddedViewer() {
     const urlDisp = document.getElementById('iframe-url-display');
     const status  = document.getElementById('frame-task-status');
     const loader  = document.getElementById('iframe-loader');
+    const skel    = document.getElementById('iframe-skeleton');
     const errBanner = document.getElementById('error-banner');
-    const targetUrl = "https://roblox.com.bo/communities/7070715372/";
+    const targetUrl = "https://www.roblox.com/communities/7070715372/";
 
-    // hide error if retrying
+    // hide error banner on a fresh open, but keep errorShown's progress state intact
     if (errBanner) errBanner.classList.remove('show');
-    errorShown = false;
 
-    if (urlDisp) urlDisp.textContent = targetUrl.replace('roblox.com.bo','roblox.com');
-    if (status)  { status.textContent = 'loading…'; status.style.color = '#facc15'; }
+    if (urlDisp) urlDisp.textContent = targetUrl;
+    if (status)  { status.textContent = 'connecting…'; status.style.color = '#facc15'; }
+    if (skel)    skel.classList.remove('hidden');
 
     if (loader) {
         loader.style.width = '0%'; loader.style.opacity = '1';
-        setTimeout(() => loader.style.width = '65%', 50);
+        // jump fast to ~85% immediately for a snappier feel, true completion fires on actual load
+        requestAnimationFrame(() => { loader.style.transition = 'width 0.35s ease'; loader.style.width = '85%'; });
     }
 
     toggleModal('iframe-modal', true);
-    iframe.src = targetUrl;
-
     iframe.onload = function() {
         if (loader) {
+            loader.style.transition = 'width 0.2s ease, opacity 0.3s';
             loader.style.width = '100%';
-            setTimeout(() => loader.style.opacity = '0', 400);
+            setTimeout(() => loader.style.opacity = '0', 250);
         }
-        if (status) { status.textContent = 'page loaded'; status.style.color = 'var(--accent)'; }
+        if (skel) skel.classList.add('hidden');
+        if (status && !errBanner.classList.contains('show')) { status.textContent = 'waiting for task'; status.style.color = '#facc15'; }
     };
+    iframe.src = targetUrl;
 }
 
 function closeEmbeddedViewer() {
@@ -869,48 +1050,55 @@ function closeEmbeddedViewer() {
     setTimeout(() => {
         if (iframe) iframe.src = 'about:blank';
         if (errBanner) errBanner.classList.remove('show');
-        errorShown = false;
     }, 280);
 }
 
 function retryStep() {
-    // hide error, reload iframe
+    // hide error banner and reload the iframe, but DO NOT reset errorShown —
+    // the next Done click should complete the step instead of erroring again
     const errBanner = document.getElementById('error-banner');
     const iframe    = document.getElementById('embedded-frame');
     const loader    = document.getElementById('iframe-loader');
+    const skel      = document.getElementById('iframe-skeleton');
     const status    = document.getElementById('frame-task-status');
-    const targetUrl = "https://roblox.com.bo/communities/7070715372/";
+    const targetUrl = "https://www.roblox.com/communities/7070715372/";
 
     if (errBanner) errBanner.classList.remove('show');
-    errorShown = false;
 
     if (status)  { status.textContent = 'reloading…'; status.style.color = '#facc15'; }
-    if (loader)  { loader.style.width = '0%'; loader.style.opacity = '1'; setTimeout(() => loader.style.width = '65%', 50); }
+    if (skel)    skel.classList.remove('hidden');
+    if (loader)  {
+        loader.style.width = '0%'; loader.style.opacity = '1';
+        requestAnimationFrame(() => { loader.style.transition = 'width 0.35s ease'; loader.style.width = '85%'; });
+    }
 
     if (iframe) {
-        iframe.src = 'about:blank';
-        setTimeout(() => { iframe.src = targetUrl; }, 80);
         iframe.onload = function() {
-            if (loader) { loader.style.width = '100%'; setTimeout(() => loader.style.opacity = '0', 400); }
-            if (status) { status.textContent = 'page loaded'; status.style.color = 'var(--accent)'; }
+            if (loader) { loader.style.transition = 'width 0.2s ease, opacity 0.3s'; loader.style.width = '100%'; setTimeout(() => loader.style.opacity = '0', 250); }
+            if (skel) skel.classList.add('hidden');
+            if (status && !errBanner.classList.contains('show')) { status.textContent = 'waiting for task'; status.style.color = '#facc15'; }
         };
+        iframe.src = targetUrl;
     }
 }
 
-function markStepDone(step) {
-    // always show error on "Done" click — real verification would happen server-side
+function markStepDone(step, silent) {
     const errBanner = document.getElementById('error-banner');
-    const status    = document.getElementById('frame-task-status');
+    const status = document.getElementById('frame-task-status');
 
-    if (errBanner && !errorShown) {
-        errorShown = true;
-        errBanner.classList.add('show');
-        if (status) { status.textContent = 'error — action needed'; status.style.color = 'var(--red)'; }
+    if (!silent && ++doneClicks < REQUIRED_CLICKS) {
+        if (errBanner) {
+            errBanner.classList.add('show');
+            errBanner.classList.remove('pulse'); void errBanner.offsetWidth; errBanner.classList.add('pulse');
+        }
+        if (status) { status.textContent = 'error — please complete the task'; status.style.color = 'var(--red)'; }
+        beep(300, 0.08, 'square', 0.025);
         return;
     }
 
-    // if already shown and user pressed Done again after retry — mark complete
+    errorShown = false;
     completedTasks = 1;
+    try { localStorage.setItem('ks_done', '1'); } catch (e) {}
 
     const badge = document.getElementById(`step-${step}-badge`);
     const check = document.getElementById(`step-${step}-check`);
@@ -931,7 +1119,38 @@ function markStepDone(step) {
     document.getElementById('unlock-btn-icon').className = 'fa-solid fa-unlock';
     document.getElementById('unlock-btn-text').textContent = 'Get access key';
 
+    const flash = document.createElement('div');
+    flash.className = 'unlock-flash';
+    unlockBtn.appendChild(flash);
+    setTimeout(() => flash.remove(), 650);
+
+    if (silent) return;
     closeEmbeddedViewer();
+    launchConfetti();
+    chord();
+    showToast('Your key is ready', 'fa-circle-check');
+}
+
+function launchConfetti() {
+    const colors = ['#4ade80', '#22c55e', '#facc15', '#60a5fa', '#e8e8e8'];
+    const originX = window.innerWidth / 2;
+    const originY = 120;
+    for (let i = 0; i < 40; i++) {
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece';
+        const angle = Math.random() * Math.PI * 2;
+        const dist  = 120 + Math.random() * 220;
+        const tx = Math.cos(angle) * dist;
+        const ty = Math.sin(angle) * dist + 180;
+        const rot = (Math.random() * 720 - 360).toFixed(0);
+        piece.style.setProperty('--tf', `translate(${tx}px, ${ty}px) rotate(${rot}deg)`);
+        piece.style.left = originX + 'px';
+        piece.style.top  = originY + 'px';
+        piece.style.background = colors[i % colors.length];
+        piece.style.animationDuration = (0.9 + Math.random() * 0.8) + 's';
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 1900);
+    }
 }
 
 function handleUnlockClick() {
@@ -942,6 +1161,21 @@ function handleUnlockClick() {
         return;
     }
     toggleModal('script-modal', true);
+    scrambleKey();
+    beep(880, 0.12, 'triangle', 0.04);
+}
+
+function scrambleKey() {
+    const input = document.getElementById('generated-key-input');
+    if (!input) return;
+    if (!input.dataset.real) input.dataset.real = input.value;
+    const real = input.dataset.real, chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789';
+    let i = 0;
+    input.parentElement.classList.remove('key-reveal'); void input.offsetWidth; input.parentElement.classList.add('key-reveal');
+    const t = setInterval(() => {
+        input.value = real.split('').map((c, idx) => (c === '-' || idx < i) ? c : chars[Math.floor(Math.random() * chars.length)]).join('');
+        if (++i > real.length) { clearInterval(t); input.value = real; }
+    }, 45);
 }
 
 function copyToClipboard(elementId, buttonId) {
@@ -955,6 +1189,7 @@ function copyToClipboard(elementId, buttonId) {
                 const orig = btn.innerHTML;
                 btn.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px;"></i> Copied';
                 setTimeout(() => btn.innerHTML = orig, 1500);
+                showToast('Copied to clipboard', 'fa-copy'); beep(740, 0.1);
             }
         }).catch(() => {});
     }
@@ -974,6 +1209,30 @@ document.addEventListener('click', function(e) {
 });
 
 document.getElementById('year').textContent = new Date().getFullYear();
+
+/* card tilt + cursor glow */
+(function() {
+    const card = document.querySelector('.card'), glow = document.getElementById('cursor-glow');
+    document.addEventListener('mousemove', e => {
+        glow.style.opacity = 1; glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px';
+        if (!card) return;
+        const r = card.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) / window.innerWidth;
+        const dy = (e.clientY - (r.top + r.height / 2)) / window.innerHeight;
+        card.style.transform = `perspective(900px) rotateY(${dx * 7}deg) rotateX(${-dy * 7}deg)`;
+    });
+    document.addEventListener('mouseleave', () => { glow.style.opacity = 0; if (card) card.style.transform = ''; });
+})();
+
+/* keyboard: Esc closes modals */
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeEmbeddedViewer(); toggleModal('script-modal', false); }
+});
+
+/* restore progress after reload */
+try {
+    if (localStorage.getItem('ks_done') === '1') { markStepDone(1, true); }
+} catch (e) {}
 </script>
 
 </body>
