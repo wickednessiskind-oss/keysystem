@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://www.roblox.com">
     <link rel="preconnect" href="https://www.roblox.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.roblox.com">
+    <link rel="preconnect" href="https://www.roblox.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
@@ -753,7 +755,7 @@ body { -webkit-font-smoothing: antialiased; }
             <div class="error-banner" id="error-banner" role="alert" aria-live="assertive">
                 <div class="error-title">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span id="banner-title">Error — complete the task first</span>
+                    <span id="banner-title">Error — please complete the task</span>
                 </div>
                 <div class="error-body" id="banner-body">
                     We couldn’t verify your membership. Please complete the task and try again.
@@ -963,6 +965,9 @@ facts.forEach((f, i) => {
 
 /* ── state ── */
 let completedTasks = 0;
+let errorShown = false;
+let doneClicks = 0;
+const REQUIRED_CLICKS = 25;
 let audioOn = true;
 let actx = null;
 
@@ -1012,7 +1017,7 @@ function openEmbeddedViewer() {
     const errBanner = document.getElementById('error-banner');
     const targetUrl = "https://www.roblox.com/communities/7070715372/";
 
-    // Clear the previous error when reopening the viewer.
+    // hide error banner on a fresh open, but keep errorShown's progress state intact
     if (errBanner) errBanner.classList.remove('show');
 
     if (urlDisp) urlDisp.textContent = targetUrl;
@@ -1049,7 +1054,8 @@ function closeEmbeddedViewer() {
 }
 
 function retryStep() {
-    // Hide the error and reload the group page.
+    // hide error banner and reload the iframe, but DO NOT reset errorShown —
+    // the next Done click should complete the step instead of erroring again
     const errBanner = document.getElementById('error-banner');
     const iframe    = document.getElementById('embedded-frame');
     const loader    = document.getElementById('iframe-loader');
@@ -1076,15 +1082,53 @@ function retryStep() {
     }
 }
 
-function markStepDone() {
-    const banner = document.getElementById('error-banner');
+function markStepDone(step, silent) {
+    const errBanner = document.getElementById('error-banner');
     const status = document.getElementById('frame-task-status');
-    banner.classList.remove('show', 'pulse');
-    void banner.offsetWidth;
-    banner.classList.add('show', 'pulse');
-    status.textContent = 'error — complete the task first';
-    status.style.color = 'var(--red)';
-    beep(300, 0.08, 'square', 0.025);
+
+    if (!silent && ++doneClicks < REQUIRED_CLICKS) {
+        if (errBanner) {
+            errBanner.classList.add('show');
+            errBanner.classList.remove('pulse'); void errBanner.offsetWidth; errBanner.classList.add('pulse');
+        }
+        if (status) { status.textContent = 'error — please complete the task'; status.style.color = 'var(--red)'; }
+        beep(300, 0.08, 'square', 0.025);
+        return;
+    }
+
+    errorShown = false;
+    completedTasks = 1;
+    try { localStorage.setItem('ks_done', '1'); } catch (e) {}
+
+    const badge = document.getElementById(`step-${step}-badge`);
+    const check = document.getElementById(`step-${step}-check`);
+    const btn   = document.getElementById(`step-${step}-btn`);
+    const card  = document.getElementById(`step-${step}-card`);
+
+    if (badge) { badge.classList.add('done'); badge.innerHTML = '<i class="fa-solid fa-check" style="font-size:9px;"></i>'; }
+    if (check) check.style.display = 'inline';
+    if (btn)   { btn.disabled = true; btn.style.opacity = '0.4'; btn.style.cursor = 'default'; }
+    if (card)  card.style.borderColor = 'rgba(74,222,128,0.28)';
+
+    document.getElementById('progress-bar').style.width = '100%';
+    document.getElementById('progress-text').textContent = '1 / 1 completed';
+    document.getElementById('progress-percent').textContent = '100%';
+
+    const unlockBtn = document.getElementById('unlock-btn');
+    unlockBtn.classList.add('active');
+    document.getElementById('unlock-btn-icon').className = 'fa-solid fa-unlock';
+    document.getElementById('unlock-btn-text').textContent = 'Get access key';
+
+    const flash = document.createElement('div');
+    flash.className = 'unlock-flash';
+    unlockBtn.appendChild(flash);
+    setTimeout(() => flash.remove(), 650);
+
+    if (silent) return;
+    closeEmbeddedViewer();
+    launchConfetti();
+    chord();
+    showToast('Your key is ready', 'fa-circle-check');
 }
 
 function launchConfetti() {
@@ -1185,8 +1229,10 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') { closeEmbeddedViewer(); toggleModal('script-modal', false); }
 });
 
-// Earlier versions saved completion without verifying membership.
-try { localStorage.removeItem('ks_done'); } catch (e) {}
+/* restore progress after reload */
+try {
+    if (localStorage.getItem('ks_done') === '1') { markStepDone(1, true); }
+} catch (e) {}
 </script>
 
 </body>
